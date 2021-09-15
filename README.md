@@ -77,23 +77,22 @@
 ---
 
 ## Data Dictionary
-|:------------------|:------------------------|:-------------|    
 key|old_key|description
 |:------------------|:------------------------|:-------------|
                    
-year                    |yearbuilt                   |The Year the principal residence was built|
-fips                    |fips                        |Federal Information Processing Standard code|
-sqft                    |calculatedfinishedsquarefeet|Calculated total finished living area of the home|
-lot_sqft                |lotsizesquarefeet           |Area of the lot in square feet|
-three_qtr_bath          |threequarterbathnbr         |Number of 3/4 bathrooms in house (shower + sink + toilet)|
-bat                     |vbathroomcnt                |Number of bathrooms in home including fractional bathrooms|
-bed                     |bedroomcnt                  |Number of bedrooms in home|
-fireplaces              |fireplacecnt                |Number of fireplaces in a home (if any)|
-garagecarcnt            |garagecarcnt                |Total number of garages on the lot including an attached garage|
-pool                    |poolcnt                     |Number of pools on the lot (if any)|
-rooms                   |roomcnt                     |Total number of rooms in the principal residence|
-taxamount               |taxamount                   |The total property tax assessed for that assessment year|
-tax_value               |taxvaluedollarcn            |The total tax assessed value of the parcel|
+year                    |yearbuilt                   |The Year the principal residence was built |
+fips                    |fips                        |Federal Information Processing Standard code |
+sqft                    |calculatedfinishedsquarefeet|Calculated total finished living area of the home |
+lot_sqft                |lotsizesquarefeet           |Area of the lot in square feet |
+three_qtr_bath          |threequarterbathnbr         |Number of 3/4 bathrooms in house (shower + sink + toilet) |
+bat                     |vbathroomcnt                |Number of bathrooms in home including fractional bathrooms |
+bed                     |bedroomcnt                  |Number of bedrooms in home |
+fireplaces              |fireplacecnt                |Number of fireplaces in a home (if any) |
+garagecarcnt            |garagecarcnt                |Total number of garages on the lot including an attached garage |
+pool                    |poolcnt                     |Number of pools on the lot (if any) |
+rooms                   |roomcnt                     |Total number of rooms in the principal residence |
+taxamount               |taxamount                   |The total property tax assessed for that assessment year |
+tax_value               |taxvaluedollarcn            |The total tax assessed value of the parcel |
     
 --- 
 
