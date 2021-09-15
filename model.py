@@ -55,7 +55,7 @@ def k_best(scaled_df, k, target):
 
 def plot_residuals(df, y, yhat, model_name):
     plt.figure(figsize=(15,8))
-    plt.title(f'Residuals for {model_name}')
+    plt.title(f'Error for {model_name}')
     sns.regplot(data=df, x=y, y=df[y]-df[yhat], scatter_kws={'color':'skyblue','alpha': .55}, line_kws={'color':'red'})
     plt.axhline(df[yhat].mean(), ls = ':', color='black')
     plt.ylabel(yhat)
