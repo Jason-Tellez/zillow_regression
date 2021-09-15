@@ -25,15 +25,14 @@ def new_zillow_data():
 
     # Create SQL query.
     sql_query = """
-           SELECT bedroomcnt, 
-               bathroomcnt, 
-               calculatedfinishedsquarefeet, 
-               taxvaluedollarcnt, 
-               yearbuilt, 
-               taxamount, 
-               fips
-            FROM properties_2017
-            WHERE propertylandusetypeid = 261;            
+           SELECT *
+           FROM properties_2017
+           JOIN predictions_2017
+           USING (parcelid)
+           LEFT JOIN propertylandusetype
+           USING (propertylandusetypeid)
+           WHERE (transactiondate <= '2017-08-31' AND transactiondate >= '2017-05-01')
+               AND propertylandusetypeid IN ('261', '262', '263', '264', '265', '266', '268', '271', '273', '274', '275', '276');  
             """
     # Read in DataFrame from Codeup's SQL db.
     df = pd.read_sql(sql_query, get_connection('zillow'))
@@ -62,3 +61,4 @@ def get_zillow_data():
         df.to_csv('zillow.csv')
         
     return df
+df = get_zillow_data()
