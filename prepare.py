@@ -4,81 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import sklearn.preprocessing
-from sklearn.impute import SimpleImputer
-
-
-################### Cleans df ###################
-
-def clean_zillow(df):
-    """
-    Function that cleans:
-        - dropps any rows with null values, 
-        - drops any duplicate rows, 
-        - converts columns to correct datatypes,
-        - edits 'fips' column to proper zipcode format
-        - renames all columns
-    """
-    
-    # Drops rows with null values for target variable
-    df.dropna(subset=['taxvaluedollarcnt'], inplace=True)
-    
-    # Drop duplicates rows
-    df.drop_duplicates(inplace=True)
-        
-    # impute mean values    
-    mean_values = df.mean(axis=0)
-    train_df_new = df.fillna(mean_values, inplace=True)
-    
-    # Changes datatypes
-    df['bedroomcnt'] = df.bedroomcnt.astype(int)  # from float to int
-    df['yearbuilt'] = df.yearbuilt.astype(int)  # from float to int
-    df['fips'] = ('0' + df.fips.astype(str)).astype(float)  # changes fips to int, then string, then adds '0' to front
-    
-    # Rename columns
-    df = df.rename(columns={'bedroomcnt': 'bed',
-                       'bathroomcnt': 'bath',
-                       'calculatedfinishedsquarefeet': 'sqft',
-                       'taxvaluedollarcnt': 'prop_value',
-                       'yearbuilt': 'year',
-                       'taxamount': 'prop_tax',
-                       'fips': 'zip'})
-    return df
-
-
-################### Impute mean values ###################
-
-def imp_mean(train, validate, test):
-    # Create the SimpleImputer object
-    imputer = SimpleImputer(missing_values = None, strategy='mean')
-    
-    # Fit the imputer to the columns in the training df
-    imputer = imputer.fit(train[['bed','bath','sqft','year','prop_tax']])
-          
-    # Transform the data
-    train[['bed','bath','sqft','year','prop_tax']] = imputer.transform(train[['bed','bath','sqft','year','prop_tax']])
-    validate[['bed','bath','sqft','year','prop_tax']] = imputer.transform(validate[['bed','bath','sqft','year','prop_tax']])
-    test[['bed','bath','sqft','year','prop_tax']] = imputer.transform(test[['bed','bath','sqft','year','prop_tax']])
-    return train, validate, test                                                        
-
-                                                                 
-################### Remove outliers ###################
-
-def remove_outliers(df):
-    """
-    Takes in df and removes outliers that are greater than the upper bound (>Q3) or less than the lower bound (<Q1)
-    """
-    # Iterates through columns (except 'zip')
-    for col in df.columns.drop('zip'):
-        # Creates !st and 3rd quartile vars
-        Q1, Q3 = df[col].quantile([.25, .75])
-        # Creates IQR var
-        IQR = Q3 - Q1
-        #Creates Upper and Lower vars
-        UB = Q3 + 1.5 * IQR
-        LB = Q1 - 1.5 * IQR
-        # drops rows with column data greater than 
-        df = df[(df[col] <= UB) & (df[col] >= LB)]
-    return df
 
 
 ################### Split the data ###################
@@ -98,61 +23,112 @@ def split_data(df):
 
 ################### Min-max Scaling ###################
 
-def minmax_scaler(train, validate, test):
+def minmax_scaler(X_train, X_validate, X_test, quants):
     """
     Takes in split data and individually scales each features to a value within the range of 0 and 1.
     Uses min-max scaler method from sklearn.
     Returns datasets with new, scaled columns to the added.
     """
-    x = []
-    minmax_train = train.copy()
-    minmax_validate = validate.copy()
-    minmax_test = test.copy()
-    for col in train.columns:
-        # 1. create the object
-        mm_scaler = sklearn.preprocessing.MinMaxScaler()
+    # Scale the data
+    scaler = sklearn.preprocessing.MinMaxScaler()
 
-        # 2. fit the object (learn the min and max value)
-        mm_scaler.fit(train)
+    # Fit the scaler
+    scaler.fit(X_train[quants])
 
-        # 3. use the object (use the min, max to do the transformation)
-        scaled_zillow_train = mm_scaler.transform(train)
-        scaled_zillow_validate = mm_scaler.transform(validate)
-        scaled_zillow_test = mm_scaler.transform(test)
+    # Use the scaler to transform train, validate, test
+    X_train_scaled = scaler.transform(X_train[quants])
+    X_validate_scaled = scaler.transform(X_validate[quants])
+    X_test_scaled = scaler.transform(X_test[quants])
 
-        x.append(col + '_scaled')
 
-    # assign the scaled values as new columns in the datasets
-    minmax_train[x] = scaled_zillow_train
-    minmax_train = minmax_train[minmax_train.columns[7:]]
+    # Turn everything into a dataframe
+    X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train[quants].columns)
+    X_validate_scaled = pd.DataFrame(X_validate_scaled, columns=X_train[quants].columns)
+    X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_train[quants].columns)
     
-    minmax_validate[x] = scaled_zillow_validate
-    minmax_validate = minmax_validate[minmax_validate.columns[7:]]
+    return X_train_scaled, X_validate_scaled, X_test_scaled
+
+
+
+################### Cleans df ###################
+
+def clean_zillow(df):
+    """
+    Function that cleans:
+        - drops any rows with null values, 
+        - drops any duplicate rows, 
+        - converts columns to correct datatypes,
+        - edits 'fips' column to proper zipcode format
+        - renames all columns
+    """
     
-    minmax_test[x] = scaled_zillow_test
-    minmax_test = minmax_test[minmax_test.columns[7:]]
-    return minmax_train, minmax_validate, minmax_test
+    # Drops duplicated id rows
+    df.drop_duplicates(subset=['parcelid'], inplace=True)
+    
+    # Drops duplicate target variable
+    df.dropna(subset=['taxvaluedollarcnt', 'taxamount'], inplace=True)
+        
+    # drops unusable columns    
+    df.drop(columns=['finishedfloor1squarefeet', 'id', 'id', 'airconditioningtypeid', 'architecturalstyletypeid', 'buildingclasstypeid', 'assessmentyear', 'censustractandblock', 'structuretaxvaluedollarcnt', 'buildingqualitytypeid', 'latitude', 'longitude', 'regionidcounty', 'regionidzip', 'regionidcity', 'regionidneighborhood', 'rawcensustractandblock', 'storytypeid', 'heatingorsystemtypeid', 'typeconstructiontypeid', 'unitcnt', 'numberofstories', 'landtaxvaluedollarcnt', 'yardbuildingsqft26', 'taxdelinquencyflag', 'calculatedbathnbr', 'pooltypeid10', 'finishedsquarefeet50', 'finishedsquarefeet15', 'finishedsquarefeet13', 'basementsqft', 'decktypeid', 'finishedsquarefeet6', 'yardbuildingsqft17', 'poolsizesum', 'taxdelinquencyyear', 'hashottuborspa', 'id.1', 'finishedsquarefeet12', 'propertyzoningdesc', 'propertycountylandusecode', 'transactiondate', 'propertylandusedesc', 'propertylandusetypeid', 'parcelid', 'pooltypeid7', 'pooltypeid2', 'garagetotalsqft'], inplace=True)
+    
+    # Renames columns
+    df.rename(columns={"bathroomcnt": "bath",
+          "bedroomcnt": "bed",
+          "calculatedfinishedsquarefeet": "sqft",
+          "fullbathcnt": "full_bath",
+          "poolcnt": "pool",
+          "roomcnt": "rooms",    
+          "threequarterbathnbr": "three_qtr_bath",
+          "yearbuilt": "year",
+          "lotsizesquarefeet": "lot_sqft",
+          "taxvaluedollarcnt": "tax_value",
+          "fireplacecnt": "fireplaces"
+          }, inplace=True)
+    
+    # Imputes missing values
+    df.fireplaces[list(df['fireplaces'][df.fireplaceflag==1].index.values)] = df.fireplaces[list(df['fireplaces'][df.fireplaceflag==1].index.values)].fillna(1)
+    df.fireplaces.fillna(0, inplace=True)
+    df['pool'].fillna(value=0, inplace=True)
+    df['garagecarcnt'].fillna(value=0, inplace=True)
+    df['full_bath'].fillna(value=0, inplace=True)
+    df['three_qtr_bath'].fillna(value=0, inplace=True)
+    mean_vals = df[['sqft', 'lot_sqft', 'year']].mean()
+    df[['sqft', 'lot_sqft', 'year']] = df[['sqft', 'lot_sqft', 'year']].fillna(mean_vals)
+    
+    # Resets index and converts data types
+    df.reset_index(inplace=True)
+    df.drop(columns='index', inplace=True)
+    df['bed'] = df.bed.astype(int)
+    df['fips'] = df.fips.astype(int)
+    df['full_bath'] = df.full_bath.astype(int)
+    df['garagecarcnt'] = df.garagecarcnt.astype(int)
+    df['pool'] = df['pool'].astype(int)
+    df['rooms'] = df.rooms.astype(int)
+    df['three_qtr_bath'] = df.three_qtr_bath.astype(int)
+    df['year'] = round(df.year, 0).astype(int)
+    df['fireplaces'] = df.fireplaces.astype(int)
+    df.drop(columns=['full_bath', 'fireplaceflag', 'logerror'], inplace=True)
+    
+    # Removes outliers of target
+    df = df[df.tax_value < df.tax_value.mean() + 3 * df.tax_value.std()]
+    df = df[df.taxamount < df.taxamount.mean() + 3 * df.taxamount.std()]
+    
+    return df                                                       
 
-
+                                                                
 ################### X, y split Funciton ###################
 
-def Xy_split(train, validate, test, minmax_train, minmax_validate, minmax_test):
-    X_exp, y_train, y_validate, y_test = train.drop(columns='prop_value'), train.prop_value, validate.prop_value, test.prop_value
-    X_train, X_validate, x_test = minmax_train, minmax_validate, minmax_test
-    return X_exp, X_train, X_validate, x_test, y_train, y_validate, y_test
-
-
-################### Wrangle Funciton ###################
-
-def wrangle_zillow():
+def X_y_split(train, validate, test, target):
     """
-    Automates all functions contained within module (Unscaled)
+    Functions that takes in trainm validate, test, and target var and split to X and y datasets
     """
-    df = get_zillow_data()
-    df = clean_zillow(df)
-    df = remove_outliers(df)  
-    train, validate, test = split_data(df)
-    #imp_train, imp_validate, imp_test = imp_mean(train, validate, test)                                                         
-    minmax_train, minmax_validate, minmax_test = minmax_scaler(train, validate, test)
-    X_exp, X_train, X_validate, x_test, y_train, y_validate, y_test = Xy_split(train, validate, test, minmax_train, minmax_validate, minmax_test)
-    return df, X_exp, X_train, X_validate, x_test, y_train, y_validate, y_test
+    # Setup X and y
+    X_train = train.drop(columns=target)
+    y_train = train[target]
+
+    X_validate = validate.drop(columns=target)
+    y_validate = validate[target]
+
+    X_test = test.drop(columns=target)
+    y_test = test[target]
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
