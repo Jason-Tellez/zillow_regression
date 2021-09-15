@@ -77,10 +77,10 @@
 ---
 
 ## Data Dictionary
-    
+|:------------------|:------------------------|:-------------|    
 key|old_key|description
 |:------------------|:------------------------|:-------------|
-                    
+                   
 year                    |yearbuilt                   |The Year the principal residence was built|
 fips                    |fips                        |Federal Information Processing Standard code|
 sqft                    |calculatedfinishedsquarefeet|Calculated total finished living area of the home|
