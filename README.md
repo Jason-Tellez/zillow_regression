@@ -122,7 +122,7 @@ Extablishing and evaluating a baseline model and showing how the model you end u
 
 Documenting various algorithms and/or hyperparameters you tried along with the evaluation code and results in your notebook before settling on the best algorithm.
 
-Evaluating your model using the standard techniques: plotting the residuals, computing the evaluation metrics (SSE, RMSE, and/or MSE), comparing to baseline, plotting y by \ ^y.
+Evaluating your model using the standard techniques: plotting the residuals, computing the evaluation metrics (SSE, RMSE, and/or MSE), comparing to baseline, plotting y by \^y.
 
 For some additional options see sklearn's linear models and sklearn's page on supervised learning.
 
@@ -137,3 +137,24 @@ Are there any features that aren't adding much value?
 Here you could also use automated feature selection techniques to determine which features to put into your model.
 
 You should make sure that any transformation that you apply to your training dataframe are reproducible, that is, the same transformations can be applied to your test dataset.
+
+
+
+
+
+
+Data Dictionary
+key|old_key|description
+year|yearbuilt|The Year the principal residence was built
+fips|fips|Federal Information Processing Standard code
+sqft|calculatedfinishedsquarefeet|Calculated total finished living area of the home
+lot_sqft|lotsizesquarefeet|Area of the lot in square feet
+three_qtr_bath|threequarterbathnbr|Number of 3/4 bathrooms in house (shower + sink + toilet)
+bath|bathroomcnt|Number of bathrooms in home including fractional bathrooms
+bed|bedroomcnt|Number of bedrooms in home
+fireplaces|fireplacecnt|Number of fireplaces in a home (if any)
+garagecarcnt|garagecarcnt|Total number of garages on the lot including an attached garage
+pool|poolcnt|Number of pools on the lot (if any)
+rooms|roomcnt|Total number of rooms in the principal residence
+taxamount|taxamount|The total property tax assessed for that assessment year
+tax_value|taxvaluedollarcnt|The total tax assessed value of the parcel
